@@ -1,5 +1,4 @@
 import os
-
 import yt_dlp
 from tqdm import tqdm
 
@@ -18,8 +17,15 @@ def main():
             info = ydl.extract_info(video_url, download=False)
             formats = info.get('formats', [])
             available_formats = [
-                {"format_id": f["format_id"], "resolution": f.get("resolution"), "ext": f["ext"]}
-                for f in formats if f.get("resolution") and f.get("ext")
+                {
+                    "format_id": f["format_id"],
+                    "resolution": f.get("resolution", "audio only"),
+                    "ext": f["ext"],
+                    "has_audio": not f.get("acodec") or f["acodec"] != "none",  # Улучшенная проверка
+                    "audio_codec": f.get("acodec", "N/A"),
+                    "video_codec": f.get("vcodec", "N/A")
+                }
+                for f in formats
             ]
             return info['title'], available_formats
 
@@ -28,7 +34,11 @@ def main():
         video_title, formats = get_formats()
         print("\nДоступные качества:")
         for idx, f in enumerate(formats):
-            print(f"{idx + 1}. {f['resolution']} ({f['ext']})")
+            audio_status = "Есть" if f["has_audio"] else "Нет"
+            print(
+                f"{idx + 1}. {f['resolution']} ({f['ext']}) | Видео: {f['video_codec']} | "
+                f"Аудио: {f['audio_codec']} ({audio_status})"
+            )
     except Exception as e:
         print(f"Ошибка получения форматов: {e}")
         return

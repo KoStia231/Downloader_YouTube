@@ -17,22 +17,16 @@ def main():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             formats = info.get('formats', [])
-
-            # Фильтрация форматов, чтобы выбрать только те, которые используют H.264
             available_formats = [
                 {"format_id": f["format_id"], "resolution": f.get("resolution"), "ext": f["ext"]}
-                for f in formats if 'h264' in f.get('codec', '').lower() and f.get("resolution") and f.get("ext")
+                for f in formats if f.get("resolution") and f.get("ext")
             ]
             return info['title'], available_formats
 
     # Получаем список форматов
     try:
         video_title, formats = get_formats()
-        if not formats:
-            print("Нет доступных форматов с кодеком H.264.")
-            return
-
-        print("\nДоступные качества (H.264):")
+        print("\nДоступные качества:")
         for idx, f in enumerate(formats):
             print(f"{idx + 1}. {f['resolution']} ({f['ext']})")
     except Exception as e:
